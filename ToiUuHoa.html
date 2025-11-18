@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Công cụ Tối ưu Hóa Logistics (STEM)</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            width: 95%;
+            padding: 8px;
+            margin-top: 4px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #ketQua {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #28a745;
+            background-color: #e2f0e7;
+            border-radius: 4px;
+        }
+        #ketQua h3 {
+            color: #d9534f;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🚚 Công cụ Tối ưu Hóa Logistics (Toán 10)</h2>
+    <p>Giải bài toán: Tối đa hóa Lợi nhuận $L = c_1 x + c_2 y$</p>
+
+    <h3>1. Lợi nhuận trên mỗi đơn vị</h3>
+    <label for="c1">Lợi nhuận Hàng X ($c_1$):</label>
+    <input type="number" id="c1" value="50" min="0">
+    
+    <label for="c2">Lợi nhuận Hàng Y ($c_2$):</label>
+    <input type="number" id="c2" value="70" min="0">
+
+    <h3>2. Các Ràng buộc (Bất Phương Trình)</h3>
+    
+    <label for="T_max">Tổng số chuyến/thời gian ($T_{\max}$): (Ràng buộc: $x + y \le T_{\max}$)</label>
+    <input type="number" id="T_max" value="20" min="1">
+    
+    <p style="margin-bottom: 5px; font-weight: bold;">Ràng buộc Trọng lượng: $a x + b y \le W_{\max}$</p>
+    <label for="a">Trọng lượng Hàng X ($a$):</label>
+    <input type="number" id="a" value="3" min="1">
+    
+    <label for="b">Trọng lượng Hàng Y ($b$):</label>
+    <input type="number" id="b" value="4" min="1">
+    
+    <label for="W_max">Tổng sức chứa ($W_{\max}$):</label>
+    <input type="number" id="W_max" value="70" min="1">
+
+    <button onclick="tinhToanToiUu()">Tối Ưu Hóa Lợi Nhuận</button>
+
+    <h3>3. Kết Quả Tối Ưu</h3>
+    <div id="ketQua">
+        Kết quả sẽ hiển thị ở đây.
+    </div>
+</div>
+
+<script>
+    function tinhToanToiUu() {
+        // 1. Lấy dữ liệu từ giao diện HTML
+        const c1 = parseFloat(document.getElementById('c1').value);
+        const c2 = parseFloat(document.getElementById('c2').value);
+        const T_max = parseFloat(document.getElementById('T_max').value);
+        const a = parseFloat(document.getElementById('a').value);
+        const b = parseFloat(document.getElementById('b').value);
+        const W_max = parseFloat(document.getElementById('W_max').value);
+
+        if (isNaN(c1) || isNaN(c2) || isNaN(T_max) || isNaN(a) || isNaN(b) || isNaN(W_max)) {
+            document.getElementById('ketQua').innerHTML = 'Vui lòng nhập đầy đủ và chính xác các giá trị.';
+            return;
+        }
+
+        // 2. Mảng lưu trữ các ĐỈNH của Miền Nghiệm
+        let diemDinh = [];
+
+        // Đỉnh 1: A (0, 0)
+        diemDinh.push({ x: 0, y: 0 });
+
+        // Đỉnh 2: Giao điểm của x=0 và các ràng buộc (Trục OY)
+        diemDinh.push({ x: 0, y: T_max });
+        diemDinh.push({ x: 0, y: W_max / b });
+
+        // Đỉnh 3: Giao điểm của y=0 và các ràng buộc (Trục OX)
+        diemDinh.push({ x: T_max, y: 0 });
+        diemDinh.push({ x: W_max / a, y: 0 });
+
+
+        // Đỉnh 4: Giao điểm của 2 đường thẳng ràng buộc
+        // (1) x + y = T_max
+        // (2) a*x + b*y = W_max
+        if (a !== b) {
+            const x_giao = (W_max - b * T_max) / (a - b);
+            const y_giao = T_max - x_giao;
+            diemDinh.push({ x: x_giao, y: y_giao });
+        }
+        
+        // 3. Lọc các điểm hợp lệ (thuộc miền nghiệm)
+        // Miền nghiệm là: (x >= 0) && (y >= 0) && (x+y <= T_max) && (a*x + b*y <= W_max)
+        
+        let diemHienThi = diemDinh.filter(diem => {
+            return diem.x >= 0 && 
+                   diem.y >= 0 && 
+                   (diem.x + diem.y) <= (T_max + 0.01) && // Thêm 0.01 để xử lý sai số
+                   (a * diem.x + b * diem.y) <= (W_max + 0.01);
+        });
+
+        // 4. Tìm giá trị Lớn nhất (L_max)
+        let L_max = -Infinity;
+        let diemToiUu = { x: 0, y: 0 };
+        let chiTietKetQua = '<ul>';
+
+        diemHienThi.forEach((diem, index) => {
+            const L_hienTai = c1 * diem.x + c2 * diem.y;
+            
+            const x_lamTron = diem.x.toFixed(2);
+            const y_lamTron = diem.y.toFixed(2);
+            
+            chiTietKetQua += `<li>Đỉnh (${x_lamTron}, ${y_lamTron}): Lợi nhuận L = ${L_hienTai.toFixed(2)}</li>`;
+
+            if (L_hienTai > L_max) {
+                L_max = L_hienTai;
+                diemToiUu = diem;
+            }
+        });
+        chiTietKetQua += '</ul>';
+
+        // 5. Hiển thị Kết quả ra giao diện
+        const ketQuaHTML = `
+            <h3>GIẢI PHÁP TỐI ƯU:</h3>
+            <p>Để đạt được lợi nhuận tối đa <strong>${L_max.toFixed(2)}</strong>, công ty cần vận chuyển:</p>
+            <p style="font-size: 1.1em;">
+                Số lượng Hàng X: <strong>${diemToiUu.x.toFixed(2)}</strong><br>
+                Số lượng Hàng Y: <strong>${diemToiUu.y.toFixed(2)}</strong>
+            </p>
+            <hr>
+            <p><strong>Phân tích các đỉnh của miền nghiệm:</strong></p>
+            ${chiTietKetQua}
+            <p style="font-size: 0.9em; color: #555;">(Lưu ý: Trong thực tế, $x$ và $y$ cần là số nguyên, cần thêm bước làm tròn và kiểm tra lại.)</p>
+        `;
+        
+        document.getElementById('ketQua').innerHTML = ketQuaHTML;
+    }
+</script>
+
+</body>
+</html>
